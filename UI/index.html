@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Checkout</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+  <button id="pay-now">Pay Now</button>
+
+  <script>
+    document.getElementById("pay-now").onclick = async function () {
+      try {
+        // Create an order on the backend
+        const response = await fetch("http://localhost:3000/create-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            amount: 500, // Amount in INR
+            currency: "INR",
+            receipt: "txn_001"
+          }),
+        });
+        const { order } = await response.json();
+
+        // Open Razorpay Checkout
+        const options = {
+          key: "rzp_test_2ujc0PSYqoRfvh", // Replace with your Razorpay Key ID
+          amount: order.amount, // Amount in paise
+          currency: order.currency,
+          name: "Your Company Name",
+          description: "Test Transaction",
+          order_id: order.id, // Razorpay Order ID
+          handler: function (response) {
+            alert(`Payment successful! Payment ID: ${response.razorpay_payment_id}`);
+          },
+          prefill: {
+            name: "John Doe",
+            email: "john.doe@example.com",
+            contact: "9999999999",
+          },
+          notes: {
+            address: "Razorpay Corporate Office",
+          },
+          theme: {
+            color: "#F37254",
+          },
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } catch (error) {
+        console.error("Error during payment initialization:", error);
+        alert("Payment failed. Please try again.");
+      }
+    };
+  </script>
+</body>
+</html>
